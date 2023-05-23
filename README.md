@@ -31,18 +31,98 @@ The RBF of hidden neuron as gaussian function
 
 
 ## ALGORIHM:
-
-/** Write the Algorithm in steps**/
+1.Import the necessary libraries of python.
+2.In the end_to_end function, first calculate the similarity between the inputs and the peaks.
+3.Then, to find w used the equation Aw= Y in matrix form.
+  Each row of A (shape: (4, 2)) consists of
+  index[0]: similarity of point with peak1
+  index[1]: similarity of point with peak2
+  index[2]: Bias input (1)
+  Y: Output associated with the input (shape: (4, ))
+  W is calculated using the same equation we use to solve linear regression using a closed solution (normal equation).
+4.This part is the same as using a neural network architecture of 2-2-1,
+  2 node input (x1, x2) (input layer)
+  2 node (each for one peak) (hidden layer)
+  1 node output (output layer)
+5.To find the weights for the edges to the 1-output unit. Weights associated would be:
+  edge joining 1st node (peak1 output) to the output node
+  edge joining 2nd node (peak2 output) to the output node
+  bias edge
 
 ## PROGRAM:
+```
+import numpy as np
+import matplotlib.pyplot as plt
+def gaussian_rbf(x,landmark,gamma=1):
+    return np.exp(-gamma * np.linalg.norm(x-landmark)**2)
+def end_to_end(x1,x2,ys,t1,t2):
+    form_1=[gaussian_rbf(i,t1)for i in zip(x1,x2)]
+    form_2=[gaussian_rbf(i,t2)for i in zip(x1,x2)]
+    #plot
+    plt.figure(figsize=(13,5))
+    plt.subplot(1,2,1)
+    plt.scatter((x1[0],x1[3]),(x2[0],x2[3]),label="class_0")
+    plt.scatter((x1[1],x1[2]),(x2[1],x2[2]),label="class_1")
+    plt.xlabel("$x1$",fontsize=15)
+    plt.xlabel("$x2$",fontsize=15)
+    plt.title("XOR: Linearly Inseparable",fontsize=15)
+    plt.legend()
+    
+    plt.subplot(1,2,2)
+    plt.scatter(form_1[0],form_2[0],label="Class_0")
+    plt.scatter(form_1[1],form_2[1],label="Class_1")
+    plt.scatter(form_1[2],form_2[2],label="Class_1")
+    plt.scatter(form_1[3],form_2[3],label="Class_0")
+    plt.plot([0,0.95],[0.95,0],"k--")
+    plt.annotate("Separating hyperplane",xy=(0.4,0.55),xytext=(0.55,0.66),arrowprops=dict(facecolor="black",shrink=0.05))
+    plt.xlabel(f"$t1$:{(t1)}",fontsize=15)
+    plt.ylabel(f"$t2$:{(t2)}",fontsize=15)
+    plt.title("Transformed Inputs: Linearly Separable",fontsize=15)
+    plt.legend()
+    
+    A=[]
+    
+    for i,j in zip(form_1,form_2):
+        temp=[]
+        temp.append(i)
+        temp.append(j)
+        temp.append(1)
+        A.append(temp)
+        
+    A=np.array(A)
+    W=np.linalg.inv(A.T.dot(A)).dot(A.T).dot(ys)
+    print(np.round(A.dot(W)))
+    print(ys)
+    print(f"Weights: {W}")
+    return W
+def predict_matrix(point,weights):
+    gaussian_rbf_0=gaussian_rbf(np.array(point),t1)
+    gaussian_rbf_1=gaussian_rbf(np.array(point),t2)
+    A=np.array([gaussian_rbf_0,gaussian_rbf_1,1])
+    return np.round(A.dot(weights))
 
+#points
+x1=np.array([0,0,1,1])
+x2=np.array([0,1,0,1])
+ys=np.array([0,1,1,0])
 
+#centers
+t1=np.array([0,1])
+t2=np.array([1,0])
 
+W=end_to_end(x1,x2,ys,t1,t2)
+
+#testing 
+print(f"Input:{np.array([0,0])},Predicted:{predict_matrix(np.array([0,0]),W)}")
+print(f"Input:{np.array([0,1])},Predicted:{predict_matrix(np.array([0,1]),W)}")
+print(f"Input:{np.array([1,0])},Predicted:{predict_matrix(np.array([1,0]),W)}")
+print(f"Input:{np.array([1,1])},Predicted:{predict_matrix(np.array([1,1]),W)}")
+```
 ## OUTPUT :
-    /**PLOTS of Output in hidden space**/
-    /Classification results
+![](exp5.png)  
 
 ## RESULT:
+Thus we have succesfully classified the Binary input patterns of XOR data  by implementing Radial Basis Function Neural Networks.
 
 
 
